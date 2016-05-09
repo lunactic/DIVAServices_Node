@@ -1,4 +1,18 @@
 {
+  "name":{
+    "type":"string",
+    "infoText":"Name of the algorithm",
+    "minLength":2,
+    "maxLength":50,
+    "required":true
+  },
+  "description":{
+    "type":"string",
+    "infoText":"Description of what the algorithm performs",
+    "minLength":5,
+    "maxLength":255,
+    "required":true
+  },
   "author":{
     "infoText":"Author of the method",
     "type":"string",

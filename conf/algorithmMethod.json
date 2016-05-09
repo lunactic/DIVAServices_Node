@@ -1,0 +1,35 @@
+{
+  "environment": {
+    "infoText": "Necessary environment to run the algorithm",
+    "type": "enum",
+    "values": [
+      "java:7",
+      "java:8"
+    ],
+    "keys" :[
+      "Java 7",
+      "Rectangle"
+    ],
+    "required": true
+  },
+  "language": {
+    "infoText": "Language which is used to run the algorithm",
+    "type": "enum",
+    "values": [
+      "java",
+      "coffeescript"
+    ],
+    "keys": [
+      "Java",
+      "CoffeeScript"
+    ],
+    "required": true
+  },
+  "executable_path":{
+    "type": "string",
+    "infoText": "",
+    "minLength": 1,
+    "maxLength": 255,
+    "required": true
+  }
+}

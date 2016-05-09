@@ -147,36 +147,25 @@ router.get '/image/results/:md5', (req, res)->
 
 
 #Info routes
-router.get '/info/inputs', (req, res) ->
+router.get '/information/general', (req, res) ->
   ioHelper = new IoHelper()
-  inputs = ioHelper.loadFile('conf/algorithmInputs.json')
+  general = ioHelper.loadFile('conf/algorithmGeneral.json')
+  sendResponse res, null, general
 
-  sendResponse res, null, inputs
-
-router.get '/info/outputs', (req, res) ->
+router.get '/information/input', (req, res) ->
   ioHelper = new IoHelper()
-  outputs = ioHelper.loadFile('conf/algorithmOutputs.json')
-  sendResponse res, null, outputs,
+  input = ioHelper.loadFile('conf/algorithmInput.json')
+  sendResponse res, null, input
 
-    router.get '/info/general', (req, res) ->
-      ioHelper = new IoHelper()
-      general = ioHelper.loadFile('conf/generalAlgorithmInfos.json')
-      sendResponse res, null, general
-
-router.get '/info/additional', (req, res) ->
+router.get '/information/output', (req, res) ->
   ioHelper = new IoHelper()
-  additional = ioHelper.loadFile('conf/additionalAlgorithmInfos.json')
-  sendResponse res, null, additional
+  output = ioHelper.loadFile('conf/algorithmOutput.json')
+  sendResponse res, null, output
 
-router.get '/info/environments', (req, res) ->
+router.get '/information/method', (req, res) ->
   ioHelper = new IoHelper()
-  environments = ioHelper.loadFile('conf/algorithmEnvironments.json')
-  sendResponse res, null, environments
-
-router.get '/info/language', (req, res) ->
-  ioHelper = new IoHelper()
-  languages = ioHelper.loadFile('conf/algorithmLanguages.json')
-  sendResponse res, null, languages
+  method = ioHelper.loadFile('conf/algorithmMethod.json')
+  sendResponse res, null, method
 
 # Set up the routing for GET requests
 router.get '*', (req, res, next) ->

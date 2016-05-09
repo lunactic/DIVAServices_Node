@@ -1,0 +1,15 @@
+{
+  "output_type": {
+    "infoText": "What type of output the algorithm produces",
+    "type": "enum",
+    "values": [
+      "file",
+      "console"
+    ],
+    "keys" :[
+      "Store output into a file. Requires to use a outputFile parameter!",
+      "Returns output to the standard output"
+    ],
+    "required": true
+  }
+}
