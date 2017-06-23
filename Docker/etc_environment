@@ -1,0 +1,6 @@
+http_proxy=http://wwwcache.univ-lr.fr:3128
+HTTP_PROXY=http://wwwcache.univ-lr.fr:3128
+https_proxy=http://wwwcache.univ-lr.fr:3128
+HTTPS_PROXY=http://wwwcache.univ-lr.fr:3128
+no_proxy="localhost,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,172.17.0.0/12,192.168.0.0/16,*.univ-lr.fr,*.pres-lpc.fr,*.pres-lpc.eu,*.univ-larochelle.fr"
+NO_PROXY="localhost,127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,172.17.0.0/12,192.168.0.0/16,*.univ-lr.fr,*.pres-lpc.fr,*.pres-lpc.eu,*.univ-larochelle.fr"

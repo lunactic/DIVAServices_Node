@@ -10,7 +10,7 @@
     "removeComments": false,
     "noImplicitAny": false,
     "typeRoots": [ "node_modules/@types" ],
-    "watch": true
+    "watch": false
   },
   "exclude": [
     "node_modules"

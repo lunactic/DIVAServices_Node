@@ -85,7 +85,7 @@ npm install
 echo "done"
 
 header "Compiling codebase"
-#tsc --project .
+tsc --project . || true
 
 header "Creating Folders"
 imageFolder=($(cat conf/server.dev.json | jq -r '.paths.filesPath'))
@@ -97,6 +97,8 @@ mkdir -p ${ocropyLanguageModelsFolder}
 executableFolder=($(cat conf/server.dev.json | jq -r '.paths.executablePath'))
 mkdir -p ${executableFolder}
 mkdir -p ${imageFolder}/test/original
+resultsFolder=($(cat conf/server.dev.json | jq -r '.paths.resultsPath'))
+mkdir -p ${resultsFolder}/
 
 header "Creating Files"
 imageInfoFile=($(cat conf/server.dev.json | jq -r '.paths.imageInfoFile'))
