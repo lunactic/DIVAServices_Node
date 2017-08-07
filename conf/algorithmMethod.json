@@ -10,7 +10,8 @@
       "divaservices/matlab2014b-compiler-runtime-docker",
       "kbai/kraken",
       "divaservices/tesseract",
-      "divaservices/noise"
+      "divaservices/noise",
+      "divaservices/opencv32:1"
     ],
     "keys": [
       "Java 7",
@@ -19,7 +20,8 @@
       "Matlab Compiler Runtime 2014b (on Ubuntu)",
       "kraken",
       "Tesseract",
-      "Noise Generation"
+      "Noise Generation",
+      "OpenCV 3.2 (python and C++ bindings)"
     ],
     "required": true
   },

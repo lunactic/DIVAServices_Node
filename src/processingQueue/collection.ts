@@ -98,6 +98,14 @@ export class Collection implements IProcess {
     public data: any[];
 
     /**
+     * the expected outputs
+     * 
+     * @type {any[]}
+     * @memberof Collection
+     */
+    public outputs: any[];
+
+    /**
      * the processes created in this collection
      * 
      * @type {Process[]}
@@ -122,12 +130,27 @@ export class Collection implements IProcess {
     public resultFile: string;
 
     /**
+     * temporary collection result file
+     * @type {string}
+     * @memberOf Collection
+     */
+    public tmpResultFile: string;
+
+    /**
      * the root folder of the collection
      * 
      * @type {string}
      * @memberOf Collection
      */
     public rootFolder: string;
+
+    /**
+     * The root folder for log files
+     * 
+     * @type {string}
+     * @memberof Collection
+     */
+    public logFolder: string;
 
     constructor() {
         this.method = "";

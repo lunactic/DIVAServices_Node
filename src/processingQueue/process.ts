@@ -202,6 +202,15 @@ export class Process implements IProcess {
     */
     public result: any;
 
+
+    /**
+     * the defined outputs
+     * 
+     * @type {any[]}
+     * @memberof Process
+     */
+    public outputs: any[];
+
     /**
      * the static url to the results
      * 
@@ -257,6 +266,24 @@ export class Process implements IProcess {
      * @memberOf Process
      */
     public stdin: any;
+
+
+    /**
+     * Path to the log file of the standard output 
+     * 
+     * @type {string}
+     * @memberof Process
+     */
+    public stdLogFile: string;
+
+    /**
+     * Path to the log file of the error output
+     * 
+     * @type {string}
+     * @memberof Process
+     */
+    public errLogFile: string;
+
 
 
     /**

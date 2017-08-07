@@ -244,6 +244,67 @@
           }
         },
         "additionalProperties": false
+      },
+      "outputNumber":{
+       "type": "object",
+        "required": [
+          "name",
+          "options"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/name"
+          },
+          "description": {
+            "$ref": "#/definitions/description"
+          },
+          "options": {
+            "type": "object",
+            "required": [
+            ],
+            "properties": {
+              "default": {
+                "type": "number"
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "steps": {
+                "type": "number"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "outputFile":{
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/definitions/name"
+          },
+          "description": {
+            "$ref": "#/definitions/description"
+          },
+          "options": {
+            "type": "object",
+            "required": [
+              "mimeType"
+            ],
+            "properties": {
+              "mimeType": {
+                "type": "string"
+              }
+            }
+          }
+        }
       }
     },
     "type": "object",
@@ -352,6 +413,22 @@
             }
           },
           "additionalProperties": false
+        },
+        "additionalItems": false
+      },
+      "output":{
+        "type": "array",
+        "items":{
+          "description":"Output types",
+          "properties":{
+            "number":{
+              "$ref":"#/definitions/outputNumber"
+            },
+            "file":{
+              "$ref":"#/definitions/outputFile"
+            }
+          },
+          "additionalProperties":false
         },
         "additionalItems": false
       },

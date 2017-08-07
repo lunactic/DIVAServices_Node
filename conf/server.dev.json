@@ -1,35 +1,43 @@
 {
   "logger": {
-    "appenders": [
-      {
+    "appenders": {
+      "file": {
         "type": "file",
         "filename": "logs/server.log",
         "maxLogSize": 2048000,
         "backups": 5
       },
-      {
+      "console": {
         "type": "console"
       }
-    ],
-    "level": "DEBUG"
+    },
+    "categories": {
+      "default": {
+        "appenders": [
+          "file",
+          "console"
+        ],
+        "level": "debug"
+      }
+    }
   },
-  "docker":{
-    "host":"134.21.72.48",
-    "port":"2375",
-    "reportHost":"134.21.72.48:8080",
+  "docker": {
+    "host": "127.0.0.1",
+    "port": "2375",
+    "reportHost": "134.21.72.48:8080",
     "maxContainers": 8,
-    "maxMemory":4096,
-    "replacePaths":[
+    "maxMemory": 4096,
+    "replacePaths": [
       "inputFolder",
       "outputFolder",
       "resultFile",
       "outputImage"
     ],
-    "paths":{
-      "inputFolder":"/data",
-      "outputFolder":"/data/output",
-      "resultFile":"/data/result.json",
-      "outputImage":"/data/outputImage.png"
+    "paths": {
+      "inputFolder": "/data",
+      "outputFolder": "/data/output",
+      "resultFile": "/data/result.json",
+      "outputImage": "/data/outputImage.png"
     }
   },
   "server": {
@@ -37,37 +45,38 @@
     "httpPort": 8080,
     "httpsPort": 8443,
     "maxFileSize": 20971520,
-    "rootUrl":"0.0.0.0:8080",
-    "managementWhitelistIp":[
+    "rootUrl": "134.21.72.48:8080",
+    "managementWhitelistIp": [
       "127.0.0.1"
     ]
   },
   "images": {
     "storeResponse": false
   },
-  "remoteServer":{
-    "user":"wuerschm",
+  "remoteServer": {
+    "user": "wuerschm",
     "ip": "diuf-cluster"
   },
   "paths": {
     "filesPath": "/data/files",
-    "resultsPath":"/data/results",
-    "testPath":"/data/testData",
-    "jsonPath":"/data/json",
+    "resultsPath": "/data/results",
+    "testPath": "/data/testData",
+    "jsonPath": "/data/json",
+    "logPath": "/data/logs",
     "imageInfoFile": "/data/files/filesInfo.json",
-    "dataInfoFile":"/data/data/dataInfo.json",
-    "rootInfoFile":"/data/json/info.json",
-    "servicesInfoFile":"/data/json/services.json",
+    "dataInfoFile": "/data/data/dataInfo.json",
+    "rootInfoFile": "/data/json/info.json",
+    "servicesInfoFile": "/data/json/services.json",
     "swaggerFile": "/data/json/swagger.json",
-    "executablePath":"/data/executables",
-    "mcr2014b":"$LD_LIBRARY_PATH"
+    "executablePath": "/data/executables",
+    "mcr2014b": "$LD_LIBRARY_PATH"
   },
   "remotePaths": {
-    "jsonPath":"data/json",
+    "jsonPath": "data/json",
     "noisingXmlPath": "/data/noise/scripts/realistic.xml",
-    "mcr2014b":"$LD_LIBRARY_PATH"
+    "mcr2014b": "$LD_LIBRARY_PATH"
   },
-  "reservedWords" :[
+  "reservedWords": [
     "file",
     "folder",
     "inputFolder",

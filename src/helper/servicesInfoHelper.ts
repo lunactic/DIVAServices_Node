@@ -76,7 +76,7 @@ export class ServicesInfoHelper {
         return serviceInfo[0];
     }
 
-    /**
+     /**
      * update the service information file
      * 
      * @static

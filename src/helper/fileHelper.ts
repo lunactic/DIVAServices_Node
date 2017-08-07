@@ -15,6 +15,7 @@ import { Logger } from "../logging/logger";
 import { Process } from "../processingQueue/process";
 import { DivaFile } from "../models/divaFile";
 import { DivaError } from '../models/divaError';
+import { isNullOrUndefined } from "util";
 
 /**
  * A class for all file handling 
@@ -41,7 +42,7 @@ export class FileHelper {
      * 
      * @memberOf FileHelper
      */
-    static fileExists(md5: string): Promise<any> {
+    static fileExistsMd5(md5: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             let filtered = this.filesInfo.filter(function (item: any) {
                 return item.md5 === md5;
@@ -55,16 +56,25 @@ export class FileHelper {
     }
 
     /**
-     * Saves an image based on its base64 encoding
+     * 
+     * @param path 
+     */
+    static fileExists(path: string): boolean {
+        return fs.existsSync(path);
+    }
+
+    /**
+     * Saves a file based on its base64 encoding
      * 
      * @static
-     * @param {*} file the image object containing the base64 string
+     * @param {*} file  the file object containing the base64 string
      * @param {string} folder the folder to save the image into
-     * @param {number} counter the running counter applied to this image
-     * 
-     * @memberOf FileHelper
+     * @param {number} counter the running counter applied to this file
+     * @param {string} [extension] the file extension (if available)
+     * @returns {Promise<any>} 
+     * @memberof FileHelper
      */
-    static saveBase64(file: any, folder: string, counter: number): Promise<any> {
+    static saveBase64(file: any, folder: string, counter: number, extension?: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             let imagePath = nconf.get("paths:filesPath");
             let base64Data = file.value.replace(/^data:image\/png;base64,/, "");
@@ -73,7 +83,12 @@ export class FileHelper {
             let fileObject = new DivaFile();
             let fileFolder = imagePath + path.sep + folder + path.sep + "original" + path.sep;
             let fileName = file.name;
-            let fileExtension = this.getImageExtensionBase64(base64Data);
+            let fileExtension;
+            if (!isNullOrUndefined(extension)) {
+                fileExtension = extension;
+            } else {
+                fileExtension = this.getImageExtensionBase64(base64Data);
+            }
             fs.stat(fileFolder + fileName, function (err: any, stat: fs.Stats) {
                 fileObject.folder = fileFolder;
                 fileObject.filename = fileName;
@@ -122,7 +137,7 @@ export class FileHelper {
         return new Promise<DivaFile[]>(async (resolve, reject) => {
             let divaFiles: DivaFile[] = [];
             let filePath = nconf.get("paths:filesPath");
-            let tmpFilePath: string = filePath + path.sep + folder + path.sep + "tempZip.zip";
+            let tmpFilePath: string = filePath + path.sep + folder + path.sep + "data.zip";
             await this.downloadFile(url, tmpFilePath);
             await IoHelper.unzipFile(tmpFilePath, filePath + path.sep + folder + path.sep + "original");
             let files: string[] = IoHelper.readFolder(filePath + path.sep + folder + path.sep + "original");
@@ -164,7 +179,15 @@ export class FileHelper {
             let fileName: string = "";
 
             var headerResponse = await request.head(url);
-            let fileExtension = mime.extension(headerResponse["content-type"]);
+            let fileExtension = "";
+            //TODO: FIX PROBLEM HERE IF content-type == "application/octet-stream"
+            if (headerResponse["content-type"] === "application/octet-stream") {
+                //if conte-typpe === 'application/content-stream' we can not make use of it per RFC 2616 7.2.1
+                // If the media type remains unknown, the recipient SHOULD treat it as type "application/octet-stream".
+                fileExtension = url.split(".").pop();
+            } else {
+                fileExtension = mime.extension(headerResponse["content-type"]);
+            }
 
             if (filename != null) {
                 tmpFilePath = filePath + path.sep + "temp_" + filename + "." + fileExtension;
@@ -353,14 +376,46 @@ export class FileHelper {
     static async createCollectionInformation(collectionName: string, files: number) {
         let status = {
             statusCode: 110,
-            statusMessage: "Downloaded 0 of " + files + " images",
-            percentage: 0
+            statusMessage: "Downloaded 0 of " + files + " files",
+            percentage: 0,
+            totalFiles: files
         };
         await IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "status.json", status, "utf-8");
     }
 
-    static deleteCollection(collection: string) {
-        IoHelper.deleteFolder(nconf.get("paths:filesPath") + path.sep + collection);
+
+    /**
+     * Add more files to a collection
+     * 
+     * @static
+     * @param {string} collectionName the name of the collection
+     * @param {number} newFiles the number of new files
+     * @memberof FileHelper
+     */
+    static async addFilesCollectionInformation(collectionName: string, newFiles: number) {
+        let statusFile = nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "status.json";
+        let currentStatus = await IoHelper.openFile(statusFile);
+
+        currentStatus.statusCode = 110;
+        currentStatus.statusMessage = "Downloaded " + currentStatus.totalFiles + " of " + (currentStatus.totalFiles + newFiles) + " files";
+        currentStatus.percentage = (currentStatus.totalFiles) / (currentStatus.totalFiles + newFiles);
+        currentStatus.totalFiles = (currentStatus.totalFiles + newFiles);
+
+        await IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "status.json", currentStatus, "utf-8");
+    }
+
+    static async deleteCollection(collection: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            let files: DivaFile[] = this.loadCollection(collection, null);
+            for (var file of files) {
+                _.remove(this.filesInfo, function (item: any) {
+                    return item.md5 === file.md5 && item.collection === collection;
+                });
+                Logger.log("info", "delete file" + file.path);
+            }
+            await this.saveFileInfo();
+            IoHelper.deleteFolder(nconf.get("paths:filesPath") + path.sep + collection);
+        });
     }
     /**
      * Check if a collection exists
@@ -396,7 +451,7 @@ export class FileHelper {
             if (downloaded !== files) {
                 status = {
                     statusCode: 110,
-                    statusMessage: "Downloaded " + downloaded + " of " + files + " images",
+                    statusMessage: "Downloaded " + downloaded + " of " + files + " files",
                     percentage: (downloaded / files) * 100
                 };
             } else {

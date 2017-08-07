@@ -9,6 +9,9 @@
     "divaservices/matlab2014b-compiler-runtime-docker": "apt",
     "divaservices/noise": "apk",
     "kbai/kraken": "apk",
-    "divaservices/tesseract": "apt"
+    "divaservices/tesseract": "apt",
+    "divaservices/opencv32":{
+      "1":"apt"
+    } 
   }
 }

@@ -123,12 +123,12 @@ export class AlgorithmManagement {
                             parameters: inputs
                         }
                     };
+                    await AlgorithmManagement.createInfoFile(req.body, nconf.get("paths:jsonPath") + path.sep + route);
                     await executableHelper.preprocess(testRequest, QueueHandler.dockerProcessingQueue, "test");
                     let job = QueueHandler.dockerProcessingQueue.getNext();
                     QueueHandler.runningDockerJobs.push(job);
                     await ExecutableHelper.executeDockerRequest(job);
                     await AlgorithmManagement.updateRootInfoFile(req.body, route);
-                    await AlgorithmManagement.createInfoFile(req.body, nconf.get("paths:jsonPath") + path.sep + route);
                     let info = IoHelper.openFile(nconf.get("paths:jsonPath") + path.sep + route + path.sep + "info.json");
                     Swagger.createEntry(info, route);
 
@@ -233,6 +233,7 @@ export class AlgorithmManagement {
     static async generateFolders(route: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {
             await IoHelper.createFolder(nconf.get("paths:executablePath") + path.sep + route);
+            await IoHelper.createFolder(nconf.get("paths:logPath") + path.sep + route);
             await IoHelper.createFolder(nconf.get("paths:jsonPath") + path.sep + route);
             resolve();
         });
@@ -267,7 +268,7 @@ export class AlgorithmManagement {
         _.remove(reservedWords, function (word: any) {
             return (word === "highlighter");
         });
-        _.unset(data, "output");
+        //_.unset(data, "output");
         _.unset(data, "method");
 
         _.forEach(data.input, function (input: any) {
@@ -632,5 +633,44 @@ export class AlgorithmManagement {
         service.identifier = identifier;
         ServicesInfoHelper.update(content);
         ServicesInfoHelper.reload();
+    }
+
+    /**
+     * test if results are valid
+     * 
+     * @static
+     * @param {*} results the computed results from the test run
+     * @param {any[]} outputs the output definitions
+     * @returns {Promise<void>} 
+     * @memberof AlgorithmManagement
+     */
+    static testResults(results: any, outputs: any[]): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            outputs.forEach(element => {
+                switch (Object.keys(element)[0]) {
+                    case "number":
+                        let result = _.find(results, function (o: any) {
+                            return Object.keys(o)[0] === "number" && o.number.name === element.number.name;
+                        });
+                        if (result == null) {
+                            reject("did not find a result for output parameter: " + element.number.name);
+                        } else {
+                            let resultValue = result.number.value;
+                            let min: number = element.number.options.min;
+                            let max: number = element.number.options.max;
+                            let name: string = element.number.name;
+                            if (result < min || result > max) {
+                                reject("error processing " + result.number.name + ": computed value is " + resultValue + " but the range is " + min + " - " + max);
+                            }
+                        }
+                        break;
+                    case "file":
+                        break;
+                    default:
+                        break;
+                }
+            });
+            resolve();
+        });
     }
 }

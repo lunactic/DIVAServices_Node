@@ -98,6 +98,13 @@ export class IoHelper {
         });
     }
 
+    static async moveFile(oldPath: string, newPath: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            await fsp.move(oldPath, newPath, { overwrite: true });
+            resolve();
+        });
+    }
+
     /**
      * remove a file from the filesystem
      * 
@@ -217,8 +224,8 @@ export class IoHelper {
      * 
      * @memberOf IoHelper
      */
-    static async zipFolder(folder: string, filename: string): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
+    static async zipFolder(folder: string, filename: string): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             let archive = archiver("zip", {});
             let folders = folder.split(path.sep);
 
@@ -226,18 +233,17 @@ export class IoHelper {
 
             let output = fsp.createWriteStream(fileName);
             output.on("close", function () {
-                resolve(fileName);
+                resolve();
             });
             archive.on("error", function (error: Object) {
                 Logger.log("error", JSON.stringify(error), "IoHelper");
+                reject(error);
             });
-
             archive.pipe(output);
-            archive.bulk([{
-                expand: true,
-                cwd: folder + path.sep,
-                src: ["*.*", "**/*.*"]
-            }]);
+
+            for (var file of IoHelper.readFolder(folder + path.sep + "original")) {
+                archive.append(fs.createReadStream(folder + path.sep + "original" + path.sep + file), { name: file });
+            }
             archive.finalize();
         });
     }
@@ -339,6 +345,19 @@ export class IoHelper {
     }
 
     /**
+     * gets the root folder for log files of this method
+     * 
+     * @static
+     * @param {string} method the path to the method
+     * @returns {string} the root log folder for this method
+     * @memberof IoHelper
+     */
+    static getLogFolder(method: string): string {
+        let logPath = nconf.get("paths:logPath");
+        return logPath + method;
+    }
+
+    /**
      * compute the path for the result file
      * 
      * @static
@@ -366,6 +385,13 @@ export class IoHelper {
         return folder + fileName + "_temp.json";
     }
 
+    static buildStdLogFilePath(folder: string, now: Date): string {
+        return folder + path.sep + now.getFullYear() + "_" + now.getMonth() + "_" + now.getDay() + "_" + now.getHours() + "_" + now.getMinutes() + "_" + now.getSeconds() + "_" + now.getMilliseconds() + "_std.log";
+    }
+
+    static buildErrLogFilePath(folder: string, now: Date): string {
+        return folder + path.sep + now.getFullYear() + "_" + now.getMonth() + "_" + now.getDay() + "_" + now.getHours() + "_" + now.getMinutes() + "_" + now.getSeconds() + "_" + now.getMilliseconds() + "_err.log";
+    }
     /**
      * get the static url for an image
      * 
@@ -457,6 +483,34 @@ export class IoHelper {
         let relPath = fullFilePath.replace(nconf.get("paths:resultsPath") + path.sep, "");
         return this.getStaticResultUrlRelative(relPath);
     }
+
+    /**
+     * get the static url to an image from a relative path
+     *
+     * @static
+     * @param {string} relativeFilePath the relative path to the image
+     * @returns {string} the static url to access this image
+     *
+     * @memberOf IoHelper
+     */
+    static getStaticLogUrlRelative(relativeFilePath: string): string {
+        let rootUrl = nconf.get("server:rootUrl");
+        return "http://" + rootUrl + "/logs/" + relativeFilePath;
+    }
+
+    /**
+     * Get the static url to an image from its absolute path
+     * 
+     * @static
+     * @param {string} fullFilePath the absolute path to the image
+     * @returns {string} the static url to access this image
+     * 
+     * @memberOf IoHelper
+     */
+    static getStaticLogUrlFull(fullFilePath: string): string {
+        let relPath = fullFilePath.replace(nconf.get("paths:logPath") + path.sep, "");
+        return this.getStaticLogUrlRelative(relPath);
+    }    
 
     /**
      * Checks if the file type of a remote url matches the expected type

@@ -181,9 +181,12 @@ export class ExecutableHelper extends EventEmitter {
             try {
                 let serviceInfo = ServicesInfoHelper.getInfoByPath(req.originalUrl);
                 let collection = new Collection();
+                let methodInfo = await IoHelper.openFile(nconf.get("paths:jsonPath") + req.originalUrl + path.sep + "info.json");
+                collection.outputs = methodInfo.output;
                 collection.method = serviceInfo.service;
                 collection.name = RandomWordGenerator.generateRandomWord();
                 collection.outputFolder = IoHelper.getOutputFolder(collection.name);
+                collection.logFolder = IoHelper.getLogFolder(serviceInfo.path);
                 collection.inputParameters = _.cloneDeep(req.body.parameters);
                 collection.inputData = _.cloneDeep(req.body.data);
                 collection.resultFile = nconf.get("paths:resultsPath") + path.sep + collection.name + ".json";
@@ -210,6 +213,7 @@ export class ExecutableHelper extends EventEmitter {
                     proc.neededData = _.cloneDeep(collection.neededData);
                     proc.parameters = _.cloneDeep(collection.parameters);
                     proc.remotePaths = _.cloneDeep(serviceInfo.remotePaths);
+                    proc.outputs = collection.outputs;
                     proc.matchedParameters = _.cloneDeep(serviceInfo.paramOrder);
                     proc.method = collection.method;
                     proc.rootFolder = collection.name;
@@ -221,6 +225,9 @@ export class ExecutableHelper extends EventEmitter {
                     //assign temporary file paths, these might change if existing results are found
                     proc.resultFile = IoHelper.buildResultfilePath(proc.outputFolder, proc.methodFolder);
                     proc.tmpResultFile = IoHelper.buildTempResultfilePath(proc.outputFolder, proc.methodFolder);
+                    let now: Date = new Date();
+                    proc.stdLogFile = IoHelper.buildStdLogFilePath(collection.logFolder, now);
+                    proc.errLogFile = IoHelper.buildErrLogFilePath(collection.logFolder, now);
                     proc.resultLink = proc.buildGetUrl();
 
                     switch (proc.resultType) {
@@ -229,7 +236,7 @@ export class ExecutableHelper extends EventEmitter {
                             break;
                         case "file":
                             proc.parameters.params["resultFile"] = proc.resultFile;
-                            proc.resultHandler = new FileResultHandler(proc.resultFile);
+                            proc.resultHandler = new FileResultHandler(proc.resultFile, proc.tmpResultFile);
                             break;
                         case "none":
                             proc.resultHandler = new NoResultHandler(proc.resultFile);

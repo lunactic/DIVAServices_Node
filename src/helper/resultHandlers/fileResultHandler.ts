@@ -21,13 +21,14 @@ import { Process } from "../../processingQueue/process";
  */
 export class FileResultHandler implements IResultHandler {
     filename: string;
-
+    tempResultFile: string;
     /**
      * Constructor
-     * @param {string} filename The file that will contain the results
+     * @param {string} resultFile The file that will contain the results
      */
-    constructor(filename: string) {
-        this.filename = filename;
+    constructor(resultFile: string, tempResultFile: string) {
+        this.filename = resultFile;
+        this.tempResultFile = tempResultFile;
     }
 
     /**
@@ -65,9 +66,9 @@ export class FileResultHandler implements IResultHandler {
     async handleResult(error: any, stdout: any, stderr: any, process: Process): Promise<any> {
         let self = this;
         return new Promise<any>(async (resolve, reject) => {
-            fs.stat(this.filename, function (error: any, stat: fs.Stats) {
+            fs.stat(this.tempResultFile, function (error: any, stat: fs.Stats) {
                 if (error == null) {
-                    fs.readFile(self.filename, "utf8", async function (err: any, data: any) {
+                    fs.readFile(self.tempResultFile, "utf8", async function (err: any, data: any) {
                         if (err != null) {
                             return reject(new DivaError("Error processing the result", 500, "ResultError"));
                         } else {
@@ -105,6 +106,33 @@ export class FileResultHandler implements IResultHandler {
                                         visualization = true;
                                     }
                                 }
+                                //add log files
+                                let stdLogFile = {
+                                    file: {
+                                        "mime-type": "text/plain",
+                                        url: IoHelper.getStaticLogUrlFull(process.stdLogFile),
+                                        name: "standardOutputLog.log",
+                                        options: {
+                                            visualization: false,
+                                            type: "logfile"
+                                        }
+                                    }
+                                };
+                                let errorLogFile = {
+                                    file: {
+                                        "mime-type": "text/plain",
+                                        url: IoHelper.getStaticLogUrlFull(process.errLogFile),
+                                        name: "errorOutputLog.log",
+                                        options: {
+                                            visualization: false,
+                                            type: "logfile"
+                                        }
+                                    }
+                                };
+
+                                data.output.push(stdLogFile);
+                                data.output.push(errorLogFile);
+
                                 //check if a visualization is available
                                 /*if (!visualization) {
                                     let file = {
@@ -126,7 +154,8 @@ export class FileResultHandler implements IResultHandler {
                                 data["resultLink"] = process.resultLink;
                                 data["collectionName"] = process.rootFolder;
                                 //data["resultZipLink"] = "http://" + nconf.get("server:rootUrl") + "/collection/" + process.rootFolder + "/" + process.methodFolder;
-                                await IoHelper.saveFile(self.filename, data, "utf8");
+                                await IoHelper.saveFile(self.tempResultFile, data, "utf8");
+                                await IoHelper.moveFile(self.tempResultFile, self.filename);
                                 resolve({ data: data, procId: process.id });
                             } catch (error) {
                                 Logger.log("error", error, "FileResultHandler");

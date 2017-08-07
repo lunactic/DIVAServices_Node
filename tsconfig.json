@@ -11,6 +11,11 @@
     "noImplicitAny": false,
     "typeRoots": [ "node_modules/@types" ],
     "watch": false
+    "types": [
+      "mocha",
+      "node",
+      "lodash"
+    ]
   },
   "exclude": [
     "node_modules"

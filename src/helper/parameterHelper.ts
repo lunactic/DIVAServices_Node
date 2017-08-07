@@ -16,7 +16,7 @@ import { Process } from "../processingQueue/process";
 import { Collection } from "../processingQueue/collection";
 import IProcess = require("../processingQueue/iProcess");
 import { DivaFile } from "../models/divaFile";
-import { isNullOrUndefined } from 'util';
+import { isNullOrUndefined } from "util";
 require("natural-compare-lite");
 
 /**
@@ -323,11 +323,11 @@ export class ParameterHelper {
             let parameters = _.clone(process.parameters.outputParams);
             data = {
                 highlighters: _.clone(process.inputHighlighters),
-                highlighterHash: hash(process.inputHighlighters),
+                highlighterHash: hash.MD5(process.inputHighlighters),
                 parameters: _.clone(parameters),
-                paramHash: hash(process.parameters),
+                paramHash: hash.MD5(process.parameters.outputParams),
                 resultFile: process.resultFile,
-                dataHash: hash(process.data)
+                dataHash: hash.MD5(process.data)
             };
 
             //turn everything into strings
@@ -336,14 +336,18 @@ export class ParameterHelper {
             });
 
             Logger.log("info", "saveParamInfo", "ParameterHelper");
-            Logger.log("info", JSON.stringify(process.parameters), "ParameterHelper");
-            Logger.log("info", "hash: " + data.hash, "ParameterHelper");
+            //Logger.log("info", JSON.stringify(process.parameters), "ParameterHelper");
+            //Logger.log("info", "hash: " + data.hash, "ParameterHelper");
 
             try {
                 fs.statSync(methodPath).isFile();
                 let content = IoHelper.openFile(methodPath);
                 //only save the information if it is not already present
-                if (_.filter(content, { "hash": data.hash, "highlighters": data.highlighters }).length === 0) {
+                if (_.filter(content, _.filter(content, {
+                    "highlighterHash": data.highlighterHash,
+                    "dataHash": data.dataHash,
+                    "paramHash": data.paramHash
+                })).length === 0) {
                     content.push(data);
                     await IoHelper.saveFile(methodPath, content, "utf8");
                 }
@@ -373,11 +377,11 @@ export class ParameterHelper {
             let parameters = _.clone(proc.parameters.outputParams);
             let data = {
                 highlighters: _.clone(proc.inputHighlighters),
-                highlighterHash: hash(proc.inputHighlighters),
-                parameters: _.clone(parameters),
-                paramHash: hash(proc.parameters),
+                highlighterHash: hash.MD5(proc.inputHighlighters),
+                parameters: parameters,
+                paramHash: hash.MD5(proc.parameters.outputParams),
                 resultFile: proc.resultFile,
-                dataHash: hash(proc.data)
+                dataHash: hash.MD5(proc.data)
             };
             try {
                 await fs.statSync(paramPath).isFile();
@@ -385,7 +389,8 @@ export class ParameterHelper {
                 let info: any = {};
                 if ((info = _.filter(content, {
                     "highlighterHash": data.highlighterHash,
-                    "dataHash": data.dataHash
+                    "dataHash": data.dataHash,
+                    "paramHash": data.paramHash
                 })).length > 0) {
                     //found some method information
                     proc.resultFile = info[0].resultFile;
@@ -422,18 +427,22 @@ export class ParameterHelper {
         return new Promise<void>(async (resolve, reject) => {
             let paramPath = nconf.get("paths:resultsPath") + path.sep + process.method + ".json";
             let data = {
-                highlighterHash: hash(process.inputHighlighters),
-                dataHash: hash(process.data)
+                highlighterHash: hash.MD5(process.inputHighlighters),
+                dataHash: hash.MD5(process.data),
+                paramHash: hash.MD5(process.parameters.outputParams)
             };
             try {
                 await fs.statSync(paramPath).isFile();
                 let content = IoHelper.openFile(paramPath);
                 if (_.filter(content, {
                     "dataHash": data.dataHash,
-                    "highlighterHash": data.highlighterHash
+                    "highlighterHash": data.highlighterHash,
+                    "paramHash": data.paramHash
                 }).length > 0) {
                     _.remove(content, { "dataHash": data.dataHash, "highlighterHash": data.highlighterHash });
                     await IoHelper.saveFile(paramPath, content, "utf8");
+                    resolve();
+                } else {
                     resolve();
                 }
             } catch (error) {

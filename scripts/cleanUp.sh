@@ -9,6 +9,8 @@ function header {
 
 header "cleaning folders"
 
+logFolder=($(cat conf/server.dev.json | jq -r '.paths.logPath'))
+rm -r ${logFolder}/
 imageFolder=($(cat conf/server.dev.json | jq -r '.paths.filesPath'))
 rm -rf ${imageFolder}/
 jsonFolder=($(cat conf/server.dev.json | jq -r '.paths.jsonPath'))
@@ -26,6 +28,7 @@ mkdir -p ${jsonFolder}
 executableFolder=($(cat conf/server.dev.json | jq -r '.paths.executablePath'))
 mkdir -p ${executableFolder}
 mkdir -p ${resultsFolder}
+mkdir -p ${logFolder}
 mkdir -p ${imageFolder}/test/original
 mkdir -p ${resultsFolder}/
 
