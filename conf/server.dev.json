@@ -45,9 +45,10 @@
     "httpPort": 8080,
     "httpsPort": 8443,
     "maxFileSize": 20971520,
-    "rootUrl": "134.21.72.48:8080",
+    "rootUrl": "localhost:8080",
     "managementWhitelistIp": [
-      "127.0.0.1"
+      "127.0.0.1",
+      "::1"
     ]
   },
   "images": {

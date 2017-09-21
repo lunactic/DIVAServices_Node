@@ -110,7 +110,7 @@ router.post("/collections", async function (req: express.Request, res: express.R
                 break;
             default:
                 try {
-                    var newFile: DivaFile = await FileHelper.saveBase64(file, collectionName, imageCounter);
+                    var newFile: DivaFile = await FileHelper.saveBase64(file, collectionName, imageCounter, file.extension);
                     await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
                     await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                     break;
@@ -122,86 +122,103 @@ router.post("/collections", async function (req: express.Request, res: express.R
     }
 });
 
-
-//TODO: TEST THIS!
+/* 
+*   TODO: TEST THIS!
+*/
 router.put("/collections/:collectionName", async function (req: express.Request, res: express.Response) {
     let collectionName = req.params["collectionName"];
     let numOfFiles: number = 0;
     let counter: number = 0;
-
+    let fileexists : boolean = false;
+    let filename = ''; 
+    let s = '';
+    
     if (FileHelper.checkCollectionAvailable(collectionName)) {
-        //count the total number of images
         for (let file of req.body.files) {
-            switch (file.type) {
-                case "iiif":
-                    let iiifManifestParser = new IiifManifestParser(file.value);
-                    await iiifManifestParser.initialize();
-                    numOfFiles += iiifManifestParser.getAllImages(0).length;
-                    break;
-                case "url":
-                    numOfFiles++;
-                    break;
-                default:
-                    numOfFiles++;
-                    break;
-            }
-            counter++;
-        }
-        //update info file
-        await FileHelper.addFilesCollectionInformation(collectionName, numOfFiles);
 
-        let imageCounter: number = 0;
-        //download the files
-        for (let file of req.body.files) {
-            switch (file.type) {
-                case "iiif":
-                    let iiifManifestParser = new IiifManifestParser(file.value);
-                    await iiifManifestParser.initialize();
-                    let images = iiifManifestParser.getAllImages(0);
-                    for (let inputImage of images) {
+            s = nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "original" + path.sep + file.name + "." + file.extension;
+            if(FileHelper.fileExists(s)) {
+                fileexists = true;
+                filename = file.name;
+            }
+
+        }
+        if(!fileexists) {   
+            //count the total number of images
+            for (let file of req.body.files) {
+                switch (file.type) {
+                    case "iiif":
+                        let iiifManifestParser = new IiifManifestParser(file.value);
+                        await iiifManifestParser.initialize();
+                        numOfFiles += iiifManifestParser.getAllImages(0).length;
+                        break;
+                    case "url":
+                        numOfFiles++;
+                        break;
+                    default:
+                        numOfFiles++;
+                        break;
+                }
+                counter++;
+            }
+            //update info file
+            await FileHelper.addFilesCollectionInformation(collectionName, numOfFiles);
+
+            let imageCounter: number = 0;
+            //download the files
+            for (let file of req.body.files) {
+                switch (file.type) {
+                    case "iiif":
+                        let iiifManifestParser = new IiifManifestParser(file.value);
+                        await iiifManifestParser.initialize();
+                        let images = iiifManifestParser.getAllImages(0);
+                        for (let inputImage of images) {
+                            try {
+                                var image = await FileHelper.saveFileUrl(inputImage, collectionName + path.sep, imageCounter);
+                                FileHelper.addFileInfo(image.md5, image.path, collectionName);
+                                FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
+                            } catch (error) {
+                                //TODO add error info into the collection information
+                                Logger.log("error", "error downloading image with message: " + error, "StandardRouter");
+                            }
+                        }
+                        break;
+                    case "url":
                         try {
-                            var image = await FileHelper.saveFileUrl(inputImage, collectionName + path.sep, imageCounter);
-                            FileHelper.addFileInfo(image.md5, image.path, collectionName);
-                            FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
+                            let url: string = file.value;
+                            if (mime.lookup(url) === "application/zip") {
+                                await FileHelper.saveZipUrl(file.value, collectionName);
+                            } else {
+                                var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, imageCounter, file.name);
+                                await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
+                                await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
+                            }
                         } catch (error) {
                             //TODO add error info into the collection information
-                            Logger.log("error", "error downloading image with message: " + error, "StandardRouter");
+                            Logger.log("error", "error downloading image from url: " + file.value + " with message: " + error, "StandardRouter");
                         }
-                    }
-                    break;
-                case "url":
-                    try {
-                        let url: string = file.value;
-                        if (mime.lookup(url) === "application/zip") {
-                            await FileHelper.saveZipUrl(file.value, collectionName);
-                        } else {
-                            var newFile: DivaFile = await FileHelper.saveFileUrl(file.value, collectionName, imageCounter, file.name);
-                            await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
-                            await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
-                        }
-                    } catch (error) {
-                        //TODO add error info into the collection information
-                        Logger.log("error", "error downloading image from url: " + file.value + " with message: " + error, "StandardRouter");
-                    }
-                    break;
-                case "text":
-                    var newFile: DivaFile = await FileHelper.saveFileText(file.value, collectionName, file.extension, imageCounter, file.name);
-                    await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
-                    await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
-                    break;
-                default:
-                    try {
-                        var newFile: DivaFile = await FileHelper.saveBase64(file, collectionName, imageCounter, file.extension);
+                        break;
+                    case "text":
+                        var newFile: DivaFile = await FileHelper.saveFileText(file.value, collectionName, file.extension, imageCounter, file.name);
                         await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
                         await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
                         break;
-                    } catch (error) {
-                        //TODO add error info into the collection information
-                        Logger.log("error", "error saving image from base64", "StandardRouter");
-                    }
+                    default:
+                        try {
+                            var newFile: DivaFile = await FileHelper.saveBase64(file, collectionName, imageCounter, file.extension);
+                            await FileHelper.addFileInfo(newFile.md5, newFile.path, collectionName);
+                            await FileHelper.updateCollectionInformation(collectionName, numOfFiles, ++imageCounter);
+                            break;
+                        } catch (error) {
+                            //TODO add error info into the collection information
+                            Logger.log("error", "error saving image from base64", "StandardRouter");
+                        }
+                }             
             }
+            send200(res, { status: 200 });
+        } else {
+            sendError(res, new DivaError("A file with the name : " + filename + " already exists in collection : " + req.params["collectionName"] , 500, "ExistingFileError"));
         }
-        send200(res, { status: 200 });
     } else {
         sendError(res, new DivaError("A collection with the name: " + req.params["collectionName"] + " does not exist.", 500, "CollectionNotExistingError"));
     }
@@ -352,6 +369,18 @@ router.get("/collections/:collection/zip", async function (req: express.Request,
     } else {
         await IoHelper.zipFolder(nconf.get("paths:filesPath") + path.sep + collection, "data.zip");
         res.download(filename);
+    }
+});
+
+router.delete("/collections/:collection/:name", function (req: express.Request, res: express.Response) {
+    let collection = req.params.collection;
+    let name = req.params.name;
+
+    try {
+        FileHelper.deleteFileInCollection(collection, name);
+        res.status(200).send();
+    } catch (error) {
+        sendResponse(res, error, null);
     }
 });
 
