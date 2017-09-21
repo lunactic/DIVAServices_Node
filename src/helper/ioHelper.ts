@@ -510,7 +510,7 @@ export class IoHelper {
     static getStaticLogUrlFull(fullFilePath: string): string {
         let relPath = fullFilePath.replace(nconf.get("paths:logPath") + path.sep, "");
         return this.getStaticLogUrlRelative(relPath);
-    }    
+    }
 
     /**
      * Checks if the file type of a remote url matches the expected type
@@ -537,6 +537,19 @@ export class IoHelper {
                 return reject(new DivaError("no filetype provided", 500, "IoError"));
             }
         });
+    }
+
+    /**
+     * Checks if the filename contains invalid characters
+     * 
+     * @static
+     * @param {string} filename the filename to check
+     * @returns {boolean} true if the filename is valid
+     * @memberof IoHelper
+     */
+    static isValidFileName(filename: string): boolean {
+        var value = !/[~`!#$%\^&*+=\-\[\]\\';,/{}|\\":<>\?\s]/g.test(filename);
+        return value;
     }
 
 }

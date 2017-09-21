@@ -23,6 +23,7 @@ import { PostHandler } from "./postHandler";
 import { GetHandler } from "./getHandler";
 import { QueueHandler } from '../processingQueue/queueHandler';
 import { DivaError } from '../models/divaError';
+import { isNullOrUndefined } from "util";
 let router = express.Router();
 
 /**
@@ -44,9 +45,7 @@ router.post("/collections", async function (req: express.Request, res: express.R
         }
     } else {
         collectionName = RandomWordGenerator.generateRandomWord();
-
     }
-    send200(res, { collection: collectionName });
 
     //count the total number of files
     for (let file of req.body.files) {
@@ -60,11 +59,19 @@ router.post("/collections", async function (req: express.Request, res: express.R
                 numOfFiles++;
                 break;
             default:
+                if (!isNullOrUndefined(file.name)) {
+                    if (!IoHelper.isValidFileName(file.name)) {
+                        sendError(res, new DivaError("One of your files has a file name with a special character", 500, "FileNameError"));
+                        return;
+                    }
+                }
                 numOfFiles++;
                 break;
         }
         counter++;
     }
+    send200(res, { collection: collectionName });
+
     //create folders and info file
     await IoHelper.createFilesCollectionFolders(collectionName);
     FileHelper.createCollectionInformation(collectionName, numOfFiles);

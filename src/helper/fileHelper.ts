@@ -77,7 +77,7 @@ export class FileHelper {
     static saveBase64(file: any, folder: string, counter: number, extension?: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             let imagePath = nconf.get("paths:filesPath");
-            let base64Data = file.value.replace(/^data:image\/png;base64,/, "");
+            let base64Data = file.value.replace(/^data:image\/png;base64,/, "").replace(/^data:image\/jpeg;base64,/, "");
             let md5String = md5(base64Data);
 
             let fileObject = new DivaFile();
