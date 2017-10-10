@@ -210,7 +210,7 @@ export class FileHelper {
 
             fs.stat(file.path, function (err: any, stat: fs.Stats) {
                 if (err == null) {
-                    fs.unlink(tmpFilePath);
+                    fs.unlinkSync(tmpFilePath);
                 } else if (err.code === "ENOENT") {
                     fs.renameSync(tmpFilePath, file.path);
                 }
@@ -403,6 +403,23 @@ export class FileHelper {
 
         await IoHelper.saveFile(nconf.get("paths:filesPath") + path.sep + collectionName + path.sep + "status.json", currentStatus, "utf-8");
     }
+
+    static async deleteFileInCollection(collection: string, target: string): Promise<void> {
+        return new Promise<void>(async (resolve, reject) => {
+            let files: DivaFile[] = this.loadCollection(collection, null);
+            for (var file of files) {
+                if(file.filename == target) {
+                    _.remove(this.filesInfo, function (item: any) {
+                        return item.file === file.path;
+                    });
+                    Logger.log("info", "delete file" + file.path);
+                }
+            }
+            await this.saveFileInfo();
+            IoHelper.deleteFile(nconf.get("paths:filesPath") + path.sep + collection + path.sep + "original" + path.sep + target);
+        });
+    }
+
 
     static async deleteCollection(collection: string): Promise<void> {
         return new Promise<void>(async (resolve, reject) => {

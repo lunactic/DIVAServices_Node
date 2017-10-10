@@ -3,7 +3,7 @@
     // for the documentation about the tasks.json format
     "version": "0.1.0",
     "command": "tsc",
-    "isWatching": true,
+    "isBackground": true,
     "isShellCommand": true,
     "args": ["-p", "."],
     "showOutput": "silent",

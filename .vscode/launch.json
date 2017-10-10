@@ -23,9 +23,7 @@
             "address": "localhost",
             "outFiles": [],
             "sourceMaps": true,
-            "restart": false,
-            "localRoot": "${workspaceRoot}",
-            "remoteRoot": "/mnt/d/DEV/DIVAServices"
+            "restart": false
         }
     ]
 }
