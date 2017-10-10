@@ -410,7 +410,7 @@ export class FileHelper {
             for (var file of files) {
                 if(file.filename == target) {
                     _.remove(this.filesInfo, function (item: any) {
-                        return item.md5 === file.md5 && item.collection === collection;
+                        return item.file === file.path;
                     });
                     Logger.log("info", "delete file" + file.path);
                 }

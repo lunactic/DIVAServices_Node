@@ -172,7 +172,7 @@ router.put("/collections/:collectionName", async function (req: express.Request,
             await FileHelper.addFilesCollectionInformation(collectionName, numOfFiles);
 
             let imageCounter: number = 0;
-            //download the files
+            //download the filesds
             for (let file of req.body.files) {
                 switch (file.type) {
                     case "iiif":
@@ -224,6 +224,7 @@ router.put("/collections/:collectionName", async function (req: express.Request,
             }
             send200(res, { status: 200 });
         } else {
+            Logger.log("info", "File already exists", "StandardRouter::PUT");
             sendError(res, new DivaError("A file with the name : " + filename + " already exists in collection : " + req.params["collectionName"] , 500, "ExistingFileError"));
         }
     } else {
