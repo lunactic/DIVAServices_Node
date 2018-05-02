@@ -1,4 +1,6 @@
 # DIVAServices
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Flunactic%2FDIVAServices.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Flunactic%2FDIVAServices?ref=badge_shield)
+
 This is the source code repository of [DivaServices](http://divaservices.unifr.ch), a RESTFul Web Service framework for Document Image Analysis (DIA) methods.
 It is under development at [University of Fribourg](http://diuf.unifr.ch/diva/)
 
@@ -25,3 +27,6 @@ infrastructure. You can use the following BibTeX.
 ----------
 ## Wiki
 More information can be found in the [Wiki](https://github.com/lunactic/DIVAServices/wiki/Home)
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Flunactic%2FDIVAServices.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Flunactic%2FDIVAServices?ref=badge_large)
